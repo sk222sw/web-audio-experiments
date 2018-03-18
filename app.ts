@@ -14,6 +14,6 @@ range.addEventListener("change", v => {
 
 let interval = null;
 
-startButton.addEventListener("click", startInterval);
-stopButton.addEventListener("click", stopInterval);
+startButton.addEventListener("click", e => {interval = startInterval()});
+stopButton.addEventListener("click", e => stopInterval(interval));
 
