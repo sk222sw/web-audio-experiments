@@ -4,17 +4,21 @@ const scheduleAheadTime = 0.1;
 let tempo = 100;
 const quarter = tempo / tempo;
 
-const minuteInMs = 60000;
-const msTempo = minuteInMs / tempo;
+const msTempo = 60000 / tempo;
 const context = new AudioContext();
 let noteTimes: number[] = setTimeForNote([quarter, quarter, quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter]);
 let startTime = 0;
 
-const scheduler = (currentTime, cb) => {
-  const next = (startTime + first(noteTimes) * msTempo) / 1000;
+function calculateNextTime(noteTime) {
+  return startTime + (noteTime * msTempo / 1000)
+}
+
+const scheduler = (currentTime) => {
+  const next = calculateNextTime(first(noteTimes))
   const shouldBeScheduled = currentTime + scheduleAheadTime
   if (next < shouldBeScheduled) {
-    cb(next);
+    calculateNextTime(first(noteTimes))
+    playNote(next);
   }
 };
 
@@ -33,10 +37,9 @@ function playNote(time) {
 
 export function startInterval() {
   const firstNote = first(noteTimes);
-  const lookAhead = 50; // kanske inte blir look ahead?
   startTime = context.currentTime
   playNote(context.currentTime + first(noteTimes));
-  const interval = setInterval(_ => scheduler(context.currentTime, playNote), lookAhead);
+  const interval = setInterval(_ => scheduler(context.currentTime), 50);
   return interval;
 }
 
