@@ -14,11 +14,11 @@ export class AudioScheduler {
     this.tempo = tempo;
     this.context = context || new AudioContext();
   }
-  
+
   init() {
     this.startTime = this.context.currentTime;
     this.msTempo = 60000 / this.tempo;
-    this.noteTimes = this.setTimeForNote(this.initialNoteTimes)
+    this.noteTimes = this.setTimeForNote(this.initialNoteTimes);
   }
 
   get tempoInMs() {
@@ -29,7 +29,7 @@ export class AudioScheduler {
     this.tempo = newTempo;
     this.msTempo = 60000 / this.tempo;
   }
-  
+
   scheduler(currentTime, cb) {
     const next = this.calculateNextTime(first(this.noteTimes));
     const shouldBeScheduled = currentTime + this.scheduleAheadTime;
@@ -49,14 +49,14 @@ export class AudioScheduler {
 
   startInterval(cb) {
     this.init();
-      
-    this.runCallback(this.context.currentTime + first(this.noteTimes), cb)
-    
+
+    this.runCallback(this.context.currentTime + first(this.noteTimes), cb);
+
     const interval = setInterval(
       _ => this.scheduler(this.context.currentTime, cb),
       50
     );
-    
+
     return interval;
   }
 

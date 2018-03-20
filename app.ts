@@ -1,5 +1,5 @@
-import {AudioScheduler} from './audio-scheduler'
-import {repeat} from './util'
+import { AudioScheduler } from "./audio-scheduler";
+import { repeat } from "./util";
 
 const range = document.querySelector("#range");
 const tempoText = document.querySelector("#tempo");
@@ -10,7 +10,7 @@ const noteTimes = [];
 
 const quarter = 1;
 
-repeat(() => noteTimes.push(quarter), 50); 
+repeat(() => noteTimes.push(quarter), 50);
 
 const context = new AudioContext();
 const scheduler = new AudioScheduler(100, noteTimes, context);
@@ -19,7 +19,6 @@ range.addEventListener("change", v => {
   tempoText.innerHTML = (v.target as any).value;
   scheduler.setTempo((v.target as any).value);
 });
-
 
 function playNote(time) {
   const osc = context.createOscillator();
@@ -32,6 +31,7 @@ function playNote(time) {
 
 let interval = null;
 
-startButton.addEventListener("click", e => {interval = scheduler.startInterval(playNote)});
+startButton.addEventListener("click", e => {
+  interval = scheduler.startInterval(playNote);
+});
 stopButton.addEventListener("click", e => scheduler.stopInterval(interval));
-
