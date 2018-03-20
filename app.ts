@@ -1,4 +1,3 @@
-// import {startInterval, stopInterval} from './audio-scheduler'
 import {AudioScheduler} from './audio-scheduler'
 
 const range = document.querySelector("#range");
@@ -12,11 +11,11 @@ range.addEventListener("change", v => {
   // tempo = +(v.target as any).value;
 });
 
-var scheduler = new AudioScheduler();
+var scheduler = new AudioScheduler(100);
 
 
 let interval = null;
 
-// startButton.addEventListener("click", e => {interval = startInterval()});
-// stopButton.addEventListener("click", e => stopInterval(interval));
+startButton.addEventListener("click", e => {interval = scheduler.startInterval()});
+stopButton.addEventListener("click", e => scheduler.stopInterval(interval));
 
