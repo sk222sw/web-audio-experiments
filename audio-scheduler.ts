@@ -1,54 +1,64 @@
 import { lastWithDefault, first, last } from "./util";
 
-const scheduleAheadTime = 0.1;
-let tempo = 100;
-const quarter = tempo / tempo;
 
-const msTempo = 60000 / tempo;
-const context = new AudioContext();
-let noteTimes: number[] = setTimeForNote([quarter, quarter, quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter,quarter]);
-let startTime = 0;
+export class AudioScheduler {
+scheduleAheadTime = 0.1;
+tempo = 100;
+quarter;
 
-function calculateNextTime(noteTime) {
-  return startTime + (noteTime * msTempo / 1000)
-}
-
-const scheduler = (currentTime) => {
-  const next = calculateNextTime(first(noteTimes))
-  const shouldBeScheduled = currentTime + scheduleAheadTime
-  if (next < shouldBeScheduled) {
-    calculateNextTime(first(noteTimes))
-    playNote(next);
+msTempo;
+context: AudioContext;
+startTime = 0;
+  noteTimes: number[]
+  
+  constructor() {
+    this.tempo = 60000 / this.tempo;
+    this.quarter = this.tempo / this.tempo;
+    this.context = new AudioContext();
+    this.noteTimes = this.setTimeForNote([]);
   }
-};
 
-let currentNote = 0;
+  scheduler(currentTime) {
+    const next = this.calculateNextTime(first(this.noteTimes))
+    const shouldBeScheduled = currentTime + this.scheduleAheadTime
+    if (next < shouldBeScheduled) {
+      this.playNote(next);
+    }
+  }
+  
+  calculateNextTime(noteTime) {
+    return this.startTime + (noteTime * this.msTempo / 1000)
+  }
+  
+  playNote(time) {
+    this.noteTimes = this.noteTimes.slice(1, this.noteTimes.length);
+      
+    const osc = this.context.createOscillator();
+    osc.connect(this.context.destination);
+  
+    const stopTime = time + 0.1;
+    osc.start(time);
+    osc.stop(stopTime);
+  }
+  
+  startInterval() {
+    const firstNote = first(this.noteTimes);
+    this.startTime = this.context.currentTime
+    this.playNote(this.context.currentTime + first(this.noteTimes));
+    const interval = setInterval(_ => this.scheduler(this.context.currentTime), 50);
+    return interval;
+  }
 
-function playNote(time) {
-  noteTimes = noteTimes.slice(1, noteTimes.length);
-    
-  const osc = context.createOscillator();
-  osc.connect(context.destination);
+  stopInterval(interval) {
+    clearInterval(interval);
+  }
 
-  const stopTime = time + 0.1;
-  osc.start(time);
-  osc.stop(stopTime);
+  setTimeForNote(notes) {
+    return notes.reduce((acc, curr) => {
+      return [...acc, curr + last(acc) || 0];
+    }, []);
+  }
+
 }
 
-export function startInterval() {
-  const firstNote = first(noteTimes);
-  startTime = context.currentTime
-  playNote(context.currentTime + first(noteTimes));
-  const interval = setInterval(_ => scheduler(context.currentTime), 50);
-  return interval;
-}
 
-export function stopInterval(interval) {
-  clearInterval(interval);
-}
-
-function setTimeForNote(notes) {
-  return notes.reduce((acc, curr) => {
-    return [...acc, curr + last(acc) || 0];
-  }, []);
-}
