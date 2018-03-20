@@ -13,16 +13,16 @@ export class AudioScheduler {
   constructor(tempo, context?) {
     this.tempo = tempo;
     this.context = context || new AudioContext();
-    this.init();
   }
   
   init() {
     this.quarter = this.tempo / this.tempo;
     this.msTempo = 60000 / this.tempo;
     
-    repeat(() => this.noteTimes.push(this.quarter), 50) 
+    const initialNotes = [];
+    repeat(() => initialNotes.push(this.quarter), 2) 
     
-    this.noteTimes = this.setTimeForNote(this.noteTimes)
+    this.noteTimes = this.setTimeForNote(initialNotes)
   }
 
   get tempoInMs() {
@@ -31,7 +31,7 @@ export class AudioScheduler {
 
   setTempo(newTempo) {
     this.tempo = newTempo;
-    this.msTempo = 60000 / this.tempo
+    this.msTempo = 60000 / this.tempo;
   }
   
   scheduler(currentTime) {
@@ -43,9 +43,7 @@ export class AudioScheduler {
   }
 
   calculateNextTime(noteTime) {
-    console.log(this.tempo)
-    const res = this.startTime + noteTime * this.tempoInMs;
-    return res
+    return this.startTime + noteTime * this.tempoInMs;
   }
 
   playNote(time) {
@@ -60,6 +58,7 @@ export class AudioScheduler {
   }
 
   startInterval() {
+    this.init();
     const firstNote = first(this.noteTimes);
     this.startTime = this.context.currentTime;
     this.playNote(this.context.currentTime + first(this.noteTimes));
