@@ -1,28 +1,24 @@
-import { lastWithDefault, first, last, repeat } from "./util";
+import { first, last } from "./util";
 
 export class AudioScheduler {
   scheduleAheadTime = 0.1;
   tempo: number;
-  quarter: number;
-
   msTempo: number;
   context: AudioContext;
   startTime = 0;
   noteTimes: number[] = [];
+  initialNoteTimes: number[] = [];
 
-  constructor(tempo, context?) {
+  constructor(tempo, initialNoteTimes, context?) {
+    this.initialNoteTimes = initialNoteTimes;
     this.tempo = tempo;
     this.context = context || new AudioContext();
   }
   
   init() {
-    this.quarter = this.tempo / this.tempo;
+    this.startTime = this.context.currentTime;
     this.msTempo = 60000 / this.tempo;
-    
-    const initialNotes = [];
-    repeat(() => initialNotes.push(this.quarter), 2) 
-    
-    this.noteTimes = this.setTimeForNote(initialNotes)
+    this.noteTimes = this.setTimeForNote(this.initialNoteTimes)
   }
 
   get tempoInMs() {
@@ -34,11 +30,11 @@ export class AudioScheduler {
     this.msTempo = 60000 / this.tempo;
   }
   
-  scheduler(currentTime) {
+  scheduler(currentTime, cb) {
     const next = this.calculateNextTime(first(this.noteTimes));
     const shouldBeScheduled = currentTime + this.scheduleAheadTime;
     if (next < shouldBeScheduled) {
-      this.playNote(next);
+      this.runCallback(next, cb);
     }
   }
 
@@ -46,26 +42,21 @@ export class AudioScheduler {
     return this.startTime + noteTime * this.tempoInMs;
   }
 
-  playNote(time) {
+  runCallback(time, cb) {
     this.noteTimes = this.noteTimes.slice(1, this.noteTimes.length);
-
-    const osc = this.context.createOscillator();
-    osc.connect(this.context.destination);
-
-    const stopTime = time + 0.1;
-    osc.start(time);
-    osc.stop(stopTime);
+    cb(time);
   }
 
-  startInterval() {
+  startInterval(cb) {
     this.init();
-    const firstNote = first(this.noteTimes);
-    this.startTime = this.context.currentTime;
-    this.playNote(this.context.currentTime + first(this.noteTimes));
+      
+    this.runCallback(this.context.currentTime + first(this.noteTimes), cb)
+    
     const interval = setInterval(
-      _ => this.scheduler(this.context.currentTime),
+      _ => this.scheduler(this.context.currentTime, cb),
       50
     );
+    
     return interval;
   }
 
