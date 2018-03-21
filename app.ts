@@ -6,14 +6,18 @@ const tempoText = document.querySelector("#tempo");
 const startButton = document.querySelector("#start");
 const stopButton = document.querySelector("#stop");
 
-const noteTimes = [];
+const intervalLengths = [];
 const quarter = 1;
 const eight = 0.5;
 
-repeat(() => (noteTimes.push(quarter), noteTimes.push(quarter)), 1);
+repeat(() => (intervalLengths.push(quarter), intervalLengths.push(quarter)), 1);
 
 const context = new AudioContext();
-const scheduler = new AudioScheduler(60, noteTimes, context);
+const scheduler = new AudioScheduler({
+  tempo: 60,
+  context,
+  intervalLengths
+});
 
 range.addEventListener("change", v => {
   tempoText.innerHTML = (v.target as any).value;

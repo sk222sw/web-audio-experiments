@@ -1,5 +1,40 @@
 import { first, last } from "./util";
 
+interface SchedulerOptions {
+  tempo: number;
+  intervalLengths?: number[];
+  context?: AudioContext;
+}
+
+enum ScheduleMode {
+  Infinite,
+  Finite
+}
+
+class InfiniteAudioScheduler {
+  currentTime: number;
+  scheduleAheadTime: number;
+  msTempo: number;
+
+  constructor() {}
+
+  runCallback() {}
+
+  scheduler(currentTime) {
+    const next = this._calculateNextTime(this.msTempo);
+
+    const shouldBeScheduled = currentTime + this.scheduleAheadTime;
+
+    if (next < shouldBeScheduled) {
+      cb(next);
+    }
+  }
+
+  _calculateNextTime(noteTime) {
+    return this.startTime + noteTime * this._noteLengthInMs();
+  }
+}
+
 export class AudioScheduler {
   private scheduleAheadTime = 0.1;
   private tempo: number;
@@ -9,11 +44,18 @@ export class AudioScheduler {
   private noteTimes: number[] = [];
   private initialNoteTimes: number[] = [];
   private interval: number;
+  private mode: ScheduleMode;
 
-  constructor(tempo, initialNoteTimes, context?) {
-    this.initialNoteTimes = initialNoteTimes;
-    this.tempo = tempo;
-    this.context = context || new AudioContext();
+  constructor(options: SchedulerOptions) {
+    this.mode = !!options.intervalLengths
+      ? ScheduleMode.Finite
+      : ScheduleMode.Infinite;
+
+    if (this.mode === ScheduleMode.Finite)
+      this.initialNoteTimes = options.intervalLengths;
+
+    this.tempo = options.tempo;
+    this.context = options.context || new AudioContext();
   }
 
   _init() {
@@ -24,7 +66,6 @@ export class AudioScheduler {
 
   _noteLengthInMs() {
     const res = this.msTempo / 1000;
-    console.log(this.msTempo, res);
     return res;
   }
 
