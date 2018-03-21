@@ -10,7 +10,7 @@ const noteTimes = [];
 const quarter = 1;
 const eight = 0.5;
 
-repeat(() => (noteTimes.push(quarter), noteTimes.push(quarter)), 50);
+repeat(() => (noteTimes.push(quarter), noteTimes.push(quarter)), 1);
 
 const context = new AudioContext();
 const scheduler = new AudioScheduler(60, noteTimes, context);
