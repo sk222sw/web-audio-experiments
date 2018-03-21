@@ -16,7 +16,8 @@ const context = new AudioContext();
 const scheduler = new AudioScheduler({
   tempo: 60,
   context,
-  intervalLengths
+  intervalLengths,
+  infinite: true
 });
 
 range.addEventListener("change", v => {
@@ -24,7 +25,6 @@ range.addEventListener("change", v => {
   scheduler.setTempo((v.target as any).value);
 });
 
-var i = 0;
 function playNote(time) {
   const osc = context.createOscillator();
   osc.connect(context.destination);
