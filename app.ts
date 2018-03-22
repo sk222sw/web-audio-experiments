@@ -10,13 +10,14 @@ const intervalLengths = [];
 const quarter = 1;
 const eight = 0.5;
 
-repeat(() => (intervalLengths.push(quarter), intervalLengths.push(quarter)), 1);
+repeat(() => (intervalLengths.push(quarter), intervalLengths.push(eight)), 4);
 
 const context = new AudioContext();
 const scheduler = new AudioScheduler({
   tempo: 60,
   context,
-  intervalLengths
+  intervalLengths,
+  infinite: true
 });
 
 range.addEventListener("change", v => {

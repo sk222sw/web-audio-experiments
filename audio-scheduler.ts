@@ -4,35 +4,12 @@ interface SchedulerOptions {
   tempo: number;
   intervalLengths?: number[];
   context?: AudioContext;
+  infinite: boolean;
 }
 
 enum ScheduleMode {
   Infinite,
   Finite
-}
-
-class InfiniteAudioScheduler {
-  currentTime: number;
-  scheduleAheadTime: number;
-  msTempo: number;
-
-  constructor() {}
-
-  runCallback() {}
-
-  scheduler(currentTime) {
-    const next = this._calculateNextTime(this.msTempo);
-
-    const shouldBeScheduled = currentTime + this.scheduleAheadTime;
-
-    if (next < shouldBeScheduled) {
-      cb(next);
-    }
-  }
-
-  _calculateNextTime(noteTime) {
-    return this.startTime + noteTime * this._noteLengthInMs();
-  }
 }
 
 export class AudioScheduler {
@@ -41,18 +18,16 @@ export class AudioScheduler {
   private msTempo: number;
   private context: AudioContext;
   private startTime = 0;
-  private noteTimes: number[] = [];
-  private initialNoteTimes: number[] = [];
+  private initialIntervals: number[] = [];
   private interval: number;
   private mode: ScheduleMode;
+  private lastIntervalStartedAt: number;
+  private intervalList: number[] = [];
 
   constructor(options: SchedulerOptions) {
-    this.mode = !!options.intervalLengths
-      ? ScheduleMode.Finite
-      : ScheduleMode.Infinite;
+    this.mode = options.infinite ? ScheduleMode.Infinite : ScheduleMode.Finite;
 
-    if (this.mode === ScheduleMode.Finite)
-      this.initialNoteTimes = options.intervalLengths;
+    this.initialIntervals = options.intervalLengths;
 
     this.tempo = options.tempo;
     this.context = options.context || new AudioContext();
@@ -61,12 +36,11 @@ export class AudioScheduler {
   _init() {
     this.startTime = this.context.currentTime;
     this.msTempo = 60000 / this.tempo;
-    this.noteTimes = this._setTimeForNote(this.initialNoteTimes);
+    this.intervalList = this.initialIntervals;
   }
 
-  _noteLengthInMs() {
-    const res = this.msTempo / 1000;
-    return res;
+  _intervalLengthInMs() {
+    return this.msTempo / 1000;
   }
 
   setTempo(newTempo) {
@@ -75,10 +49,16 @@ export class AudioScheduler {
   }
 
   _scheduler(currentTime, cb) {
-    const next = this._calculateNextTime(first(this.noteTimes));
+    if (!last(this.intervalList)) {
+      if (this.mode === ScheduleMode.Finite) {
+        this.stopInterval(this.interval);
+      } else {
+        this.intervalList = this.initialIntervals;
+      }
+      return;
+    }
 
-    if (!next) this.stopInterval(this.interval);
-
+    const next = this._calculateNext(first(this.intervalList));
     const shouldBeScheduled = currentTime + this.scheduleAheadTime;
 
     if (next < shouldBeScheduled) {
@@ -86,19 +66,23 @@ export class AudioScheduler {
     }
   }
 
-  _calculateNextTime(noteTime) {
-    return this.startTime + noteTime * this._noteLengthInMs();
+  _calculateNext(intervalLength) {
+    return (
+      (this.lastIntervalStartedAt || 0) +
+      intervalLength * this._intervalLengthInMs()
+    );
   }
 
   _runCallback(time, cb) {
-    this.noteTimes = this.noteTimes.slice(1, this.noteTimes.length);
+    this.intervalList = this.intervalList.slice(1, this.intervalList.length);
+    this.lastIntervalStartedAt = time;
     cb(time);
   }
 
   startInterval(cb: Function) {
     this._init();
 
-    this._runCallback(this.context.currentTime + first(this.noteTimes), cb);
+    this._runCallback(this.context.currentTime, cb);
 
     const interval = setInterval(
       _ => this._scheduler(this.context.currentTime, cb),
@@ -111,11 +95,5 @@ export class AudioScheduler {
 
   stopInterval(interval) {
     clearInterval(interval);
-  }
-
-  _setTimeForNote(notes) {
-    return notes.reduce((acc, curr) => {
-      return [...acc, curr + last(acc) || 0];
-    }, []);
   }
 }
