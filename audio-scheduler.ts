@@ -5,6 +5,8 @@ interface SchedulerOptions {
   intervalLengths: number[];
   context?: AudioContext;
   infinite: boolean;
+  schedulAheadTime?: number;
+  intervalTime?: number;
 }
 
 enum ScheduleMode {
@@ -13,7 +15,7 @@ enum ScheduleMode {
 }
 
 export class AudioScheduler {
-  private scheduleAheadTime = 0.1;
+  private scheduleAheadTime: number;
   private tempo: number;
   private msTempo: number;
   private context: AudioContext;
@@ -22,11 +24,14 @@ export class AudioScheduler {
   private mode: ScheduleMode;
   private lastIntervalStartedAt: number;
   private intervalList: number[] = [];
+  private intervalTime: number;
 
   constructor(options: SchedulerOptions) {
     this.mode = options.infinite ? ScheduleMode.Infinite : ScheduleMode.Finite;
 
     this.initialIntervals = options.intervalLengths;
+    this.scheduleAheadTime = options.schedulAheadTime || 0.1;
+    this.intervalTime = options.intervalTime || 50;
 
     this.tempo = options.tempo;
     this.context = options.context || new AudioContext();
@@ -84,7 +89,7 @@ export class AudioScheduler {
 
     const interval = setInterval(
       _ => this._scheduler(this.context.currentTime, cb),
-      50
+      this.intervalTime
     );
 
     this.setIntervalReference = interval;
