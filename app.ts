@@ -10,7 +10,7 @@ const intervalLengths = [];
 const quarter = 1;
 const eight = 0.5;
 
-repeat(() => (intervalLengths.push(quarter), intervalLengths.push(eight)), 4);
+repeat(() => (intervalLengths.push(quarter), intervalLengths.push(eight)), 2);
 
 const context = new AudioContext();
 const scheduler = new AudioScheduler({
@@ -38,5 +38,6 @@ let interval = null;
 
 startButton.addEventListener("click", e => {
   interval = scheduler.startInterval(playNote);
+  scheduler.pop();
 });
 stopButton.addEventListener("click", e => scheduler.stopInterval(interval));

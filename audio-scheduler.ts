@@ -99,4 +99,28 @@ export class AudioScheduler {
   stopInterval(interval) {
     clearInterval(interval);
   }
+
+  updateIntervals(intervalList: number[]) {
+    this.intervalList = intervalList;
+    this.initialIntervals = intervalList;
+  }
+  push(newInterval: number) {
+    this.intervalList = [...this.intervalList, newInterval];
+    this.initialIntervals = [...this.initialIntervals, newInterval];
+  }
+  shift() {
+    const [_, ...intervals] = this.intervalList;
+    const [__, ...initialIntervals] = this.initialIntervals;
+    this.intervalList = intervals;
+    this.initialIntervals = initialIntervals;
+  }
+  pop() {
+    const intervalList = [...this.intervalList];
+    intervalList.pop();
+    this.intervalList = intervalList;
+
+    const initialIntervals = [...this.initialIntervals];
+    initialIntervals.pop();
+    this.initialIntervals = initialIntervals;
+  }
 }
