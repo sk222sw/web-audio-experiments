@@ -17,9 +17,8 @@ export class AudioScheduler {
   private tempo: number;
   private msTempo: number;
   private context: AudioContext;
-  private startTime = 0;
   private initialIntervals: number[] = [];
-  private interval: number;
+  private setIntervalReference: number;
   private mode: ScheduleMode;
   private lastIntervalStartedAt: number;
   private intervalList: number[] = [];
@@ -34,7 +33,6 @@ export class AudioScheduler {
   }
 
   _init() {
-    this.startTime = this.context.currentTime;
     this.msTempo = 60000 / this.tempo;
     this.intervalList = this.initialIntervals;
   }
@@ -51,7 +49,7 @@ export class AudioScheduler {
   _scheduler(currentTime, cb) {
     if (!last(this.intervalList)) {
       if (this.mode === ScheduleMode.Finite) {
-        this.stopInterval(this.interval);
+        this.stopInterval(this.setIntervalReference);
       } else {
         this.intervalList = this.initialIntervals;
       }
@@ -89,7 +87,7 @@ export class AudioScheduler {
       50
     );
 
-    this.interval = interval;
+    this.setIntervalReference = interval;
     return interval;
   }
 
